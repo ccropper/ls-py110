@@ -20,6 +20,7 @@ from utils import join_or
 INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
+GAMES_TO_WIN = 5
 
 
 def prompt(message):
@@ -112,26 +113,47 @@ def detect_winner(board):
 
 
 def play_tic_tac_toe():
-    while True:
-        board = initialize_board()
 
-        while True:
+    while True:
+        player_wins = 0
+        computer_wins = 0
+
+        prompt(f"First to {GAMES_TO_WIN} wins!")
+
+        while player_wins < GAMES_TO_WIN and computer_wins < GAMES_TO_WIN:
+            board = initialize_board()
+
+            while True:
+
+                display_board(board)
+
+                player_chooses_square(board)
+                if someone_won(board) or board_full(board):
+                    break
+
+                computer_chooses_square(board)
+                if someone_won(board) or board_full(board):
+                    break
+
             display_board(board)
 
-            player_chooses_square(board)
-            if someone_won(board) or board_full(board):
-                break
+            if someone_won(board):
+                winner = detect_winner(board)
+                if winner == "Player":
+                    player_wins += 1
+                if winner == "Computer":
+                    computer_wins += 1
+                prompt(f"{winner} won!")
+            else:
+                prompt("It's a tie!")
 
-            computer_chooses_square(board)
-            if someone_won(board) or board_full(board):
-                break
+            prompt(f"Player has {player_wins} wins. Computer has {computer_wins} wins.")
+            input()
 
-        display_board(board)
-
-        if someone_won(board):
-            prompt(f"{detect_winner(board)} won!")
+        if player_wins > computer_wins:
+            prompt("Player won the match!")
         else:
-            prompt("It's a tie!")
+            prompt("Computer won the match!")
 
         prompt("Play again? (y or n)")
         answer = input().lower()
