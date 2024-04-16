@@ -109,6 +109,17 @@ def computer_chooses_square(board):
     board[square] = COMPUTER_MARKER
 
 
+def choose_square(board, current_player="Player"):
+    if current_player == "Player":
+        player_chooses_square(board)
+    else:
+        computer_chooses_square(board)
+
+
+def alternate_player(current_player="Player"):
+    return "Computer" if current_player == "Player" else "Player"
+
+
 def board_full(board):
     return len(empty_squares(board)) == 0
 
@@ -142,6 +153,7 @@ def play_tic_tac_toe():
     while True:
         player_wins = 0
         computer_wins = 0
+        current_player = "Player"
 
         prompt(f"First to {GAMES_TO_WIN} wins!")
 
@@ -152,11 +164,8 @@ def play_tic_tac_toe():
 
                 display_board(board)
 
-                player_chooses_square(board)
-                if someone_won(board) or board_full(board):
-                    break
-
-                computer_chooses_square(board)
+                choose_square(board, current_player)
+                current_player = alternate_player(current_player)
                 if someone_won(board) or board_full(board):
                     break
 
