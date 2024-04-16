@@ -21,6 +21,8 @@ INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
 
+GAMES_TO_WIN = 1
+
 WINNING_LINES = [
     [1, 2, 3],
     [4, 5, 6],
@@ -31,8 +33,6 @@ WINNING_LINES = [
     [1, 5, 9],
     [3, 5, 7],  # diagonals
 ]
-
-GAMES_TO_WIN = 5
 
 
 def prompt(message):
@@ -77,98 +77,6 @@ def player_chooses_square(board):
         prompt("Sorry, that's not a valid choice.")
 
     board[int(square)] = HUMAN_MARKER
-
-
-# computer randomly chooses square
-
-# def computer_chooses_square(board):
-#     if len(empty_squares(board)) == 0:
-#         return
-#     square = random.choice(empty_squares(board))
-#     board[square] = COMPUTER_MARKER
-
-# computer chooses square defensively
-
-""" 
-mini-PEDAC
-
-### P ###
-
-we want the computer to choose defensively
-
-if 2 out of the 3 spaces out of a winning line is filled by a player marker, the computer should choose the 3rd spot
-input: board state
-output: the position corresponding to a key in the board state dict
-
-### E ###
-
-    if player has 1, 2, then computer should choose 3
-    if player has 2, 3, then computer should choose 1
-    if player has 1, 7, then computer should choose 4
-
-
-### D ###
-
-dictionary representing board state
-list representing each of the winning lines 
-
-### A ###
-
-option 1:
-
-when it's the computer's turn:
-    make the board state available
-    loop through winning lines and check if the player has 2 of them
-
-    loop through winning lines list:
-
-        make a new dict that uses the board state dict value corresponding to the position
-
-        # e.g. [PLAYER_TOKEN, COMPUTER_TOKEN, INITIAL_MARKER]
-        # e.g. [PLAYER_TOKEN, PLAYER_TOKEN, COMPUTER_TOKEN]
-        # e.g. [PLAYER_TOKEN, PLAYER_TOKEN, INITIAL_MARKER]
-
-        check the count of PLAYER_TOKEN in new dict values
-
-        if count of PLAYER_TOKEN in new dict values is 2 and remaining square is empty:
-            assign computer square to the key of the remaining square
-        
-    otherwise, return random square for computer choice
-
-
-option 2:
-
-when it's the computer's turn:
-    make the board state available
-    player_token_list
-    loop through the player's positions. for each position:
-        loop through each winning line that contains the player's position
-            make a copy of winning_line
-            remove the player's position from winning_line_evaluated
-            loop through remaining spots in player_token_list:
-                if player position in a winning line:
-                    pop the number corresponding to the player position from winning_line_evaluated
-                    check if it is an available spot. if so:
-                        assign square = remaining number as computer position
-    
-    square = random.choice(empty_squares(board))
-    board[square] = COMPUTER_MARKER   
-
-
-option 3:
-
-get all empty spots still available
-
-for each empty spot:
-    try to put the player marker there
-        if then player wins, set computer choice to that square
-    otherwise choose randomly amongst the empty squares
-    return square
-
-### C ###
-
-see below for implementation of option 3    
-"""
 
 
 def computer_chooses_square(board):
@@ -273,9 +181,15 @@ def play_tic_tac_toe():
             prompt("Computer won the match!")
 
         prompt("Play again? (y or n)")
-        answer = input().lower()
+        while True:
+            answer = input().lower()
 
-        if answer and answer[0] != "y":
+            if answer == "n" or answer == "y":
+                break
+            else:
+                prompt("Please choose a valid option (y or n)")
+
+        if answer == "n":
             break
 
     prompt("Thanks for playing Tic Tac Toe!")
