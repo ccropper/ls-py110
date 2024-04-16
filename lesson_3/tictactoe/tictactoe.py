@@ -79,6 +79,13 @@ def player_chooses_square(board):
     board[int(square)] = HUMAN_MARKER
 
 
+def simulate_move(board, move, marker):
+    board[move] = marker
+    winner = detect_winner(board)
+    board[move] = INITIAL_MARKER
+    return winner
+
+
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
@@ -88,18 +95,15 @@ def computer_chooses_square(board):
     for move in empty_squares(board):
 
         # offensive first
-        simulated_board = board.copy()
-        simulated_board[move] = COMPUTER_MARKER
-        if detect_winner(simulated_board) == "Computer":
+        if simulate_move(board, move, COMPUTER_MARKER):
             square = move
             break
+
     if not square:
         for move in empty_squares(board):
 
             # then defensive
-            simulated_board = board.copy()
-            simulated_board[move] = HUMAN_MARKER
-            if detect_winner(simulated_board) == "Player":
+            if simulate_move(board, move, HUMAN_MARKER):
                 square = move
                 break
 
