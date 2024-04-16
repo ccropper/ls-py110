@@ -171,35 +171,31 @@ see below for implementation of option 3
 """
 
 
-def computer_chooses_square(board, style="defensive"):
+def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
 
-    for square in empty_squares(board):
+    square = None
 
-        # defensive
+    for move in empty_squares(board):
 
+        # offensive first
         simulated_board = board.copy()
-
-        simulated_board[square] = HUMAN_MARKER
-
-        simulated_winner = detect_winner(simulated_board)
-
-        if simulated_winner == "Player":
+        simulated_board[move] = COMPUTER_MARKER
+        if detect_winner(simulated_board) == "Computer":
+            square = move
             break
+    if not square:
+        for move in empty_squares(board):
 
-        # then offensive
+            # then defensive
+            simulated_board = board.copy()
+            simulated_board[move] = HUMAN_MARKER
+            if detect_winner(simulated_board) == "Player":
+                square = move
+                break
 
-        simulated_board = board.copy()
-
-        simulated_board[square] = COMPUTER_MARKER
-
-        simulated_winner = detect_winner(simulated_board)
-
-        if simulated_winner == "Computer":
-            break
-
-    if not simulated_winner:
+    if not square:
         square = random.choice(empty_squares(board))
 
     board[square] = COMPUTER_MARKER
