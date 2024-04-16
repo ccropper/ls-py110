@@ -20,6 +20,18 @@ from utils import join_or
 INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
+
+WINNING_LINES = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],  # rows
+    [1, 4, 7],
+    [2, 5, 8],
+    [3, 6, 9],  # columns
+    [1, 5, 9],
+    [3, 5, 7],  # diagonals
+]
+
 GAMES_TO_WIN = 5
 
 
@@ -67,9 +79,113 @@ def player_chooses_square(board):
     board[int(square)] = HUMAN_MARKER
 
 
+# computer randomly chooses square
+
+# def computer_chooses_square(board):
+#     if len(empty_squares(board)) == 0:
+#         return
+#     square = random.choice(empty_squares(board))
+#     board[square] = COMPUTER_MARKER
+
+# computer chooses square defensively
+
+""" 
+mini-PEDAC
+
+### P ###
+
+we want the computer to choose defensively
+
+if 2 out of the 3 spaces out of a winning line is filled by a player marker, the computer should choose the 3rd spot
+input: board state
+output: the position corresponding to a key in the board state dict
+
+### E ###
+
+    if player has 1, 2, then computer should choose 3
+    if player has 2, 3, then computer should choose 1
+    if player has 1, 7, then computer should choose 4
+
+
+### D ###
+
+dictionary representing board state
+list representing each of the winning lines 
+
+### A ###
+
+option 1:
+
+when it's the computer's turn:
+    make the board state available
+    loop through winning lines and check if the player has 2 of them
+
+    loop through winning lines list:
+
+        make a new dict that uses the board state dict value corresponding to the position
+
+        # e.g. [PLAYER_TOKEN, COMPUTER_TOKEN, INITIAL_MARKER]
+        # e.g. [PLAYER_TOKEN, PLAYER_TOKEN, COMPUTER_TOKEN]
+        # e.g. [PLAYER_TOKEN, PLAYER_TOKEN, INITIAL_MARKER]
+
+        check the count of PLAYER_TOKEN in new dict values
+
+        if count of PLAYER_TOKEN in new dict values is 2 and remaining square is empty:
+            assign computer square to the key of the remaining square
+        
+    otherwise, return random square for computer choice
+
+
+option 2:
+
+when it's the computer's turn:
+    make the board state available
+    player_token_list
+    loop through the player's positions. for each position:
+        loop through each winning line that contains the player's position
+            make a copy of winning_line
+            remove the player's position from winning_line_evaluated
+            loop through remaining spots in player_token_list:
+                if player position in a winning line:
+                    pop the number corresponding to the player position from winning_line_evaluated
+                    check if it is an available spot. if so:
+                        assign square = remaining number as computer position
+    
+    square = random.choice(empty_squares(board))
+    board[square] = COMPUTER_MARKER   
+
+
+option 3:
+
+get all empty spots still available
+
+for each empty spot:
+    try to put the player marker there
+        if then player wins, set computer choice to that square
+    otherwise choose randomly amongst the empty squares
+    return square
+
+### C ###
+
+see below for implementation of option 3    
+"""
+
+
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
+
+    for square in empty_squares(board):
+        simulated_board = board.copy()
+
+        simulated_board[square] = HUMAN_MARKER
+
+        simulated_winner = detect_winner(simulated_board)
+
+        if simulated_winner == "Player":
+            board[square] = COMPUTER_MARKER
+            break
+
     square = random.choice(empty_squares(board))
     board[square] = COMPUTER_MARKER
 
@@ -83,18 +199,8 @@ def someone_won(board):
 
 
 def detect_winner(board):
-    winning_lines = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],  # rows
-        [1, 4, 7],
-        [2, 5, 8],
-        [3, 6, 9],  # columns
-        [1, 5, 9],
-        [3, 5, 7],  # diagonals
-    ]
 
-    for line in winning_lines:
+    for line in WINNING_LINES:
         sq1, sq2, sq3 = line
         if (
             board[sq1] == HUMAN_MARKER
