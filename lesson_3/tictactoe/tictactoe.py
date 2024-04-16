@@ -20,7 +20,19 @@ from utils import join_or
 INITIAL_MARKER = " "
 HUMAN_MARKER = "X"
 COMPUTER_MARKER = "O"
-GAMES_TO_WIN = 5
+
+GAMES_TO_WIN = 1
+
+WINNING_LINES = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],  # rows
+    [1, 4, 7],
+    [2, 5, 8],
+    [3, 6, 9],  # columns
+    [1, 5, 9],
+    [3, 5, 7],  # diagonals
+]
 
 
 def prompt(message):
@@ -70,8 +82,42 @@ def player_chooses_square(board):
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
-    square = random.choice(empty_squares(board))
+
+    square = None
+
+    for move in empty_squares(board):
+
+        # offensive first
+        simulated_board = board.copy()
+        simulated_board[move] = COMPUTER_MARKER
+        if detect_winner(simulated_board) == "Computer":
+            square = move
+            break
+    if not square:
+        for move in empty_squares(board):
+
+            # then defensive
+            simulated_board = board.copy()
+            simulated_board[move] = HUMAN_MARKER
+            if detect_winner(simulated_board) == "Player":
+                square = move
+                break
+
+    if not square:
+        square = random.choice(empty_squares(board))
+
     board[square] = COMPUTER_MARKER
+
+
+def choose_square(board, current_player="Player"):
+    if current_player == "Player":
+        player_chooses_square(board)
+    else:
+        computer_chooses_square(board)
+
+
+def alternate_player(current_player="Player"):
+    return "Computer" if current_player == "Player" else "Player"
 
 
 def board_full(board):
@@ -83,18 +129,8 @@ def someone_won(board):
 
 
 def detect_winner(board):
-    winning_lines = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],  # rows
-        [1, 4, 7],
-        [2, 5, 8],
-        [3, 6, 9],  # columns
-        [1, 5, 9],
-        [3, 5, 7],  # diagonals
-    ]
 
-    for line in winning_lines:
+    for line in WINNING_LINES:
         sq1, sq2, sq3 = line
         if (
             board[sq1] == HUMAN_MARKER
@@ -117,6 +153,7 @@ def play_tic_tac_toe():
     while True:
         player_wins = 0
         computer_wins = 0
+        current_player = "Player"
 
         prompt(f"First to {GAMES_TO_WIN} wins!")
 
@@ -127,11 +164,8 @@ def play_tic_tac_toe():
 
                 display_board(board)
 
-                player_chooses_square(board)
-                if someone_won(board) or board_full(board):
-                    break
-
-                computer_chooses_square(board)
+                choose_square(board, current_player)
+                current_player = alternate_player(current_player)
                 if someone_won(board) or board_full(board):
                     break
 
@@ -156,9 +190,15 @@ def play_tic_tac_toe():
             prompt("Computer won the match!")
 
         prompt("Play again? (y or n)")
-        answer = input().lower()
+        while True:
+            answer = input().lower()
 
-        if answer and answer[0] != "y":
+            if answer == "n" or answer == "y":
+                break
+            else:
+                prompt("Please choose a valid option (y or n)")
+
+        if answer == "n":
             break
 
     prompt("Thanks for playing Tic Tac Toe!")
