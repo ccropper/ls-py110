@@ -2,37 +2,24 @@ import os
 import random
 from utils import prompt, join_or
 
-COMPLETE_DECK = [
-    ["Hearts", "A"], ["Diamonds", "A"], ["Clubs", "A"], ["Spades", "A"],
-    ["Hearts", "2"], ["Diamonds", "2"], ["Clubs", "2"], ["Spades", "2"],
-    ["Hearts", "3"], ["Diamonds", "3"], ["Clubs", "3"], ["Spades", "3"],
-    ["Hearts", "4"], ["Diamonds", "4"], ["Clubs", "4"], ["Spades", "4"],
-    ["Hearts", "5"], ["Diamonds", "5"], ["Clubs", "5"], ["Spades", "5"],
-    ["Hearts", "6"], ["Diamonds", "6"], ["Clubs", "6"], ["Spades", "6"],
-    ["Hearts", "7"], ["Diamonds", "7"], ["Clubs", "7"], ["Spades", "7"],
-    ["Hearts", "8"], ["Diamonds", "8"], ["Clubs", "8"], ["Spades", "8"],
-    ["Hearts", "9"], ["Diamonds", "9"], ["Clubs", "9"], ["Spades", "9"],
-    ["Hearts", "10"], ["Diamonds", "10"], ["Clubs", "10"], ["Spades", "10"],
-    ["Hearts", "J"], ["Diamonds", "J"], ["Clubs", "J"], ["Spades", "J"],
-    ["Hearts", "Q"], ["Diamonds", "Q"], ["Clubs", "Q"], ["Spades", "Q"],
-    ["Hearts", "K"], ["Diamonds", "K"], ["Clubs", "K"], ["Spades", "K"]
-]
+SUITS = ('Hearts', 'Diamonds', 'Spades', 'Clubs')
+VALUES = ('2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', \
+'A')
 
-player_hand = []
-computer_hand = []
+def create_deck():
+    return [[suit, value] for suit in SUITS for value in VALUES]
 
-def prompt_with_separator(msg):
-    print(f"{'~' * 60}")
+def prompt_with_separator(msg, delimiter='~', width=60):
+    print(f"{delimiter * width}")
     prompt(msg)
 
 def shuffle(cards):
     random.shuffle(cards)
 
 def initialize_deck():
-    os.system("clear")
-    playing_deck = COMPLETE_DECK
-    shuffle(playing_deck)
-    return playing_deck
+    deck = create_deck()
+    shuffle(deck)
+    return deck
 
 def deal_card(hand, deck):
     # need to grab 2 card from deck
@@ -89,108 +76,109 @@ def dealer_turn(hand, deck):
     pass
 
 
-while True:
-
-    prompt_with_separator("Welcome to Twenty-one.")
-
-    # 1. Initialize deck
-
-    playing_deck = initialize_deck()
-    winner = None
-
-    # 2. Deal cards to player and dealer
-
-    player_hand = []
-    computer_hand = []
-
-    deal_card(player_hand, playing_deck)
-    deal_card(player_hand, playing_deck)
-    deal_card(computer_hand, playing_deck)
-    deal_card(computer_hand, playing_deck)
-
-    # display your hand
-
-    display_hand(player_hand)
-
-    # display one card from computer's hand
-
-    display_hand(computer_hand, is_dealer = True, conceal_card=True)
-
+def play_twentyone():
     while True:
 
-        # 3. Player turn: hit or stay
-        #    - repeat until bust or stay
+        os.system("clear")
+        prompt_with_separator("Welcome to Twenty-one.")
+
+        # 1. Initialize deck
+
+        playing_deck = initialize_deck()
+        winner = None
+
+        # 2. Deal cards to player and dealer
+
+        player_hand = []
+        computer_hand = []
+
+        deal_card(player_hand, playing_deck)
+        deal_card(player_hand, playing_deck)
+        deal_card(computer_hand, playing_deck)
+        deal_card(computer_hand, playing_deck)
+
+        # display your hand
+
+        display_hand(player_hand)
+
+        # display one card from computer's hand
+
+        display_hand(computer_hand, is_dealer = True, conceal_card=True)
 
         while True:
-            prompt_with_separator("Do you hit (h) or stay (s)?")
+
+            # 3. Player turn: hit or stay
+            #    - repeat until bust or stay
+
             while True:
-                choice = input().strip()
-                if choice in ('h', 's'):
-                    break
-                prompt_with_separator("Please choose between hit (h) or stay (s).")
+                prompt_with_separator("Do you hit (h) or stay (s)?")
+                while True:
+                    choice = input().strip()
+                    if choice in ('h', 's'):
+                        break
+                    prompt_with_separator("Please choose between hit (h) or stay (s).")
 
-            if choice == 's':
-                prompt_with_separator("You decide to stay.")
+                if choice == 's':
+                    prompt_with_separator("You decide to stay.")
+                    break
+                if choice == 'h':
+                    deal_card(player_hand, playing_deck)
+                    display_hand(player_hand)
+                    if is_busted(player_hand):
+                        winner = 'dealer'
+                        break
+
+        # 4. If player bust, dealer wins.
+
+            if winner:
+                prompt_with_separator("You busted!")
+                prompt_with_separator("Dealer wins!")
                 break
-            if choice == 'h':
-                deal_card(player_hand, playing_deck)
-                display_hand(player_hand)
-                if is_busted(player_hand):
-                    winner = 'dealer'
-                    break
 
-    # 4. If player bust, dealer wins.
+            # 5. Dealer turn: hit or stay
+            #    - repeat until total >= 17
 
-        if winner:
-            prompt_with_separator("You busted!")
-            prompt_with_separator("Dealer wins!")
+            dealer_turn(computer_hand, playing_deck)
+
+            # reveal dealer hand
+
+            display_hand(computer_hand, is_dealer=True, conceal_card=False)
+
+            # 6. If dealer busts, player wins.
+
+            if is_busted(computer_hand):
+                prompt_with_separator("You win!")
+                break
+
+            # 7. Compare cards and declare winner.
+
+
+            if total(player_hand) > total(computer_hand):
+                prompt_with_separator("You win!")
+                break
+            if total(computer_hand) > total(player_hand):
+                prompt_with_separator("Dealer wins!")
+                break
+            else:
+                prompt_with_separator("It's a tie!")
+                break
+        
+        prompt_with_separator("Play again? (y or n)")
+
+        while True:
+            answer = input().lower()
+
+            if answer == "n" or answer == "y":
+                break
+            else:
+                prompt_with_separator("Please choose a valid option (y or n)")
+
+        if answer == "n":
             break
 
-        # 5. Dealer turn: hit or stay
-        #    - repeat until total >= 17
+        prompt_with_separator("Thanks for playing Twenty-One!")
 
-        dealer_turn(computer_hand, playing_deck)
-
-        # reveal dealer hand
-
-        display_hand(computer_hand, is_dealer=True, conceal_card=False)
-
-        # 6. If dealer busts, player wins.
-
-        if is_busted(computer_hand):
-            prompt_with_separator("You win!")
-            break
-
-        # 7. Compare cards and declare winner.
-
-
-        if total(player_hand) > total(computer_hand):
-            prompt_with_separator("You win!")
-            break
-        if total(computer_hand) > total(player_hand):
-            prompt_with_separator("Dealer wins!")
-            break
-        else:
-            prompt_with_separator("It's a tie!")
-            break
-    
-    prompt_with_separator("Play again? (y or n)")
-
-    while True:
-        answer = input().lower()
-
-        if answer == "n" or answer == "y":
-            break
-        else:
-            prompt_with_separator("Please choose a valid option (y or n)")
-
-    if answer == "n":
-        break
-
-    prompt_with_separator("Thanks for playing Twenty-One!")
-
-
-
+play_twentyone()
 
 
 
