@@ -1,5 +1,5 @@
 import random
-from utils import prompt
+from utils import prompt, join_or
 
 COMPLETE_DECK = [
     ["Hearts", "A"], ["Diamonds", "A"], ["Clubs", "A"], ["Spades", "A"],
@@ -28,16 +28,28 @@ def initialize_deck():
     shuffle(playing_deck)
     return playing_deck
 
-def deal_cards(deck, player):
+def deal_cards(deck):
     # need to grab 2 card from deck
-    if player == 'human':
-        player_hand.append(deck.pop())
-        player_hand.append(deck.pop())
-    elif player == 'computer':
-        computer_hand.append(deck.pop())
-        computer_hand.append(deck.pop())
+    hand = []
+    hand.append(deck.pop())
+    hand.append(deck.pop())
+    return hand
+
+def display_hand(hand, is_dealer = False):
+    # if not is_dealer:
+    #     str = "You are holding: "
+    #     for card in range(0, len(hand)):
+    #         str += f"{hand[card][1]} of {player_hand[card][0]}"
+    # prompt(str)
+    if not is_dealer:
+        legible_hand = [f"{card[1]} of {card[0]}"  for card in hand]
+        joined_hand = join_or(legible_hand, last_joining_word='and')
+        prompt(f"You are holding: {joined_hand}.")
     else:
-        pass
+        legible_hand = [f"{card[1]} of {card[0]}"  for card in hand[:-1]]
+        joined_hand = join_or(legible_hand, last_joining_word='and')
+        prompt(f"The dealer is holding holding: {joined_hand} and another mystery card.")
+            
 
 # 1. Initialize deck
 
@@ -45,13 +57,29 @@ playing_deck = initialize_deck()
 
 # 2. Deal cards to player and dealer
 
-deal_cards(playing_deck, 'human')
-deal_cards(playing_deck, 'computer')
+player_hand = deal_cards(playing_deck)
+computer_hand = deal_cards(playing_deck)
 
-print(player_hand)
-print(computer_hand)
+# display your hand
+
+display_hand(player_hand, is_dealer = False)
+
+# display one card from computer's hand
+
+display_hand(computer_hand, is_dealer = True)
 
 # 3. Player turn: hit or stay
+
+prompt("Do you hit (h) or stay (s)?")
+while True:
+    choice = input().strip()
+    if choice in ('h', 's'):
+        break
+    prompt("Please choose between hit (h) or stay (s).")
+
+
+
+
 #    - repeat until bust or stay
 # 4. If player bust, dealer wins.
 # 5. Dealer turn: hit or stay
