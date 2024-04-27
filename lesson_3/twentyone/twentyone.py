@@ -28,12 +28,9 @@ def initialize_deck():
     shuffle(playing_deck)
     return playing_deck
 
-def deal_cards(deck):
+def deal_card(hand, deck):
     # need to grab 2 card from deck
-    hand = []
     hand.append(deck.pop())
-    hand.append(deck.pop())
-    return hand
 
 def display_hand(hand, is_dealer = False):
     # if not is_dealer:
@@ -44,12 +41,15 @@ def display_hand(hand, is_dealer = False):
     if not is_dealer:
         legible_hand = [f"{card[1]} of {card[0]}"  for card in hand]
         joined_hand = join_or(legible_hand, last_joining_word='and')
-        prompt(f"You are holding: {joined_hand}.")
+        prompt(f"Your hand: {joined_hand}.")
     else:
         legible_hand = [f"{card[1]} of {card[0]}"  for card in hand[:-1]]
         joined_hand = join_or(legible_hand, last_joining_word='and')
-        prompt(f"The dealer is holding holding: {joined_hand} and another mystery card.")
-            
+        prompt(f"Dealer's hand: {joined_hand} and a mystery card.")
+
+def is_busted(hand):
+    # check if hand is busted
+    pass
 
 # 1. Initialize deck
 
@@ -57,12 +57,17 @@ playing_deck = initialize_deck()
 
 # 2. Deal cards to player and dealer
 
-player_hand = deal_cards(playing_deck)
-computer_hand = deal_cards(playing_deck)
+player_hand = []
+computer_hand = []
+
+deal_card(player_hand, playing_deck)
+deal_card(player_hand, playing_deck)
+deal_card(computer_hand, playing_deck)
+deal_card(computer_hand, playing_deck)
 
 # display your hand
 
-display_hand(player_hand, is_dealer = False)
+display_hand(player_hand)
 
 # display one card from computer's hand
 
@@ -70,14 +75,22 @@ display_hand(computer_hand, is_dealer = True)
 
 # 3. Player turn: hit or stay
 
-prompt("Do you hit (h) or stay (s)?")
 while True:
-    choice = input().strip()
-    if choice in ('h', 's'):
+    prompt("Do you hit (h) or stay (s)?")
+    while True:
+        choice = input().strip()
+        if choice in ('h', 's'):
+            break
+        prompt("Please choose between hit (h) or stay (s).")
+
+    if choice == 's':
+        prompt("You decide to stay.")
         break
-    prompt("Please choose between hit (h) or stay (s).")
-
-
+    if choice == 'h':
+        deal_card(player_hand, playing_deck)
+        display_hand(player_hand)
+        if is_busted(player_hand):
+            break
 
 
 #    - repeat until bust or stay
