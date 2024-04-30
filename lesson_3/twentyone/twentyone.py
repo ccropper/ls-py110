@@ -6,9 +6,18 @@ SUITS = ("Hearts", "Diamonds", "Spades", "Clubs")
 VALUES = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
 GAMES_TO_WIN = 5
 
+def get_total_to_win():
+    prompt("What should be the total point value to win the hand? (21 - 99)")
+    while True:
+        try:
+            total_to_win = int(input())
+            break
+        except ValueError:
+            prompt ("Please enter an integer between 21 and 99. ")
+    return total_to_win
+
 def create_deck():
     return [[suit, value] for suit in SUITS for value in VALUES]
-
 
 def prompt_with_separator(msg, delimiter="-", width=60):
     print(f"{delimiter * width}")
@@ -23,7 +32,6 @@ def initialize_deck():
     deck = create_deck()
     shuffle(deck)
     return deck
-
 
 def deal_card(hand, deck):
     # need to grab 2 card from deck
@@ -84,6 +92,21 @@ def dealer_turn(hand, deck, total_to_win=21):
         )
     prompt_with_separator("Dealer stays.")
 
+def play_again():
+    prompt_with_separator("Play again? (y or n)")
+
+    while True:
+        answer = input().lower()
+
+        if answer in ("n", "y"):
+            break
+
+        prompt_with_separator("Please choose a valid option (y or n)")
+
+    if answer == "n":
+        return False
+    
+    return True
 
 def play_twentyone():
 
@@ -92,8 +115,7 @@ def play_twentyone():
         computer_wins = 0
 
         prompt_with_separator("Welcome to Whatever-One.")
-        prompt("What should be the total point value to win the hand? (21 - 99)")
-        total_to_win = int(input())
+        total_to_win = get_total_to_win()
 
         while player_wins < GAMES_TO_WIN and computer_wins < GAMES_TO_WIN:
 
@@ -101,7 +123,6 @@ def play_twentyone():
             
             prompt_with_separator(f"Welcome to {total_to_win}.")
             prompt(f"First to win {GAMES_TO_WIN} games wins the match!")
-            prompt(f"Player has {player_wins} wins. Computer has {computer_wins} wins.")
 
             # 1. Initialize deck
 
@@ -190,7 +211,8 @@ def play_twentyone():
                     break
                 prompt_with_separator("It's a tie!")
                 break
-
+            
+            prompt_with_separator(f"Player has {player_wins} wins. Computer has {computer_wins} wins.")
             prompt("Press enter to continue.")
             input()
 
@@ -199,20 +221,10 @@ def play_twentyone():
         else:
             prompt("Computer won the match!")
 
-            prompt_with_separator("Play again? (y or n)")
+        if not play_again():
+            break
 
-            while True:
-                answer = input().lower()
-
-                if answer in ("n", "y"):
-                    break
-
-                prompt_with_separator("Please choose a valid option (y or n)")
-
-            if answer == "n":
-                break
-
-        prompt_with_separator("Thanks for playing Twenty-One!")
+        prompt_with_separator("Thanks for playing Whatever-One!")
 
 
 play_twentyone()
