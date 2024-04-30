@@ -48,7 +48,7 @@ def display_hand(hand, is_dealer=False, conceal_card=False):
     prompt_with_separator(msg)
 
 
-def total(cards):
+def total(cards, total_to_win=21):
     # cards = [['H', '3'], ['S', 'Q'], ... ]
     values = [card[1] for card in cards]
 
@@ -63,21 +63,21 @@ def total(cards):
 
     # correct for Aces
     aces = values.count("A")
-    while sum_val > 21 and aces:
+    while sum_val > total_to_win and aces:
         sum_val -= 10
         aces -= 1
 
     return sum_val
 
 
-def is_busted(hand):
-    if total(hand) > 21:
+def is_busted(hand, total_to_win=21):
+    if total(hand) > total_to_win:
         return True
     return False
 
 
-def dealer_turn(hand, deck):
-    while total(hand) < 17:
+def dealer_turn(hand, deck, total_to_win=21):
+    while total(hand, total_to_win) < total_to_win - 4:
         deal_card(hand, deck)
         prompt(
             f"Dealer hits! They are dealt a {hand[-1][1]} of {hand[-1][0]} from the deck..."
@@ -91,11 +91,16 @@ def play_twentyone():
         player_wins = 0
         computer_wins = 0
 
+        prompt_with_separator("Welcome to Whatever-One.")
+        prompt("What should be the total point value to win the hand? (21 - 99)")
+        total_to_win = int(input())
+
         while player_wins < GAMES_TO_WIN and computer_wins < GAMES_TO_WIN:
 
             os.system("clear")
-            prompt_with_separator("Welcome to Twenty-one.")
-            prompt(f"First to {GAMES_TO_WIN} wins!")
+            
+            prompt_with_separator(f"Welcome to {total_to_win}.")
+            prompt(f"First to win {GAMES_TO_WIN} games wins the match!")
             prompt(f"Player has {player_wins} wins. Computer has {computer_wins} wins.")
 
             # 1. Initialize deck
@@ -136,14 +141,14 @@ def play_twentyone():
 
                     if choice == "s":
                         prompt_with_separator(
-                            f"You decide to stay. Your hand total is {total(player_hand)}."
+                            f"You decide to stay. Your hand total is {total(player_hand, total_to_win)}."
                         )
                         break
                     if choice == "h":
                         prompt_with_separator("You decide to hit.")
                         deal_card(player_hand, playing_deck)
                         display_hand(player_hand)
-                        if is_busted(player_hand):
+                        if is_busted(player_hand, total_to_win):
                             winner = "dealer"
                             break
 
@@ -158,16 +163,16 @@ def play_twentyone():
                 # 5. Dealer turn: hit or stay
                 #    - repeat until total >= 17
 
-                dealer_turn(computer_hand, playing_deck)
+                dealer_turn(computer_hand, playing_deck, total_to_win)
 
                 # reveal dealer hand
 
                 display_hand(computer_hand, is_dealer=True, conceal_card=False)
-                prompt(f"The dealer's hand total is {total(computer_hand)}.")
+                prompt(f"The dealer's hand total is {total(computer_hand, total_to_win)}.")
 
                 # 6. If dealer busts, player wins.
 
-                if is_busted(computer_hand):
+                if is_busted(computer_hand, total_to_win):
                     prompt_with_separator("The dealer busted!")
                     prompt_with_separator("You win!")
                     player_wins += 1
@@ -175,11 +180,11 @@ def play_twentyone():
 
                 # 7. Compare cards and declare winner.
 
-                if total(player_hand) > total(computer_hand):
+                if total(player_hand, total_to_win) > total(computer_hand, total_to_win):
                     prompt_with_separator("You win!")
                     player_wins += 1
                     break
-                if total(computer_hand) > total(player_hand):
+                if total(computer_hand, total_to_win) > total(player_hand, total_to_win):
                     prompt_with_separator("Dealer wins!")
                     computer_wins += 1
                     break
