@@ -4,7 +4,7 @@ from utils import prompt, join_or
 
 SUITS = ("Hearts", "Diamonds", "Spades", "Clubs")
 VALUES = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
-
+GAMES_TO_WIN = 5
 
 def create_deck():
     return [[suit, value] for suit in SUITS for value in VALUES]
@@ -45,7 +45,7 @@ def display_hand(hand, is_dealer=False, conceal_card=False):
         joined_hand = join_or(legible_hand, last_joining_word="and")
         msg += f"{joined_hand} and a secret card."
 
-    prompt(msg)
+    prompt_with_separator(msg)
 
 
 def total(cards):
@@ -86,107 +86,126 @@ def dealer_turn(hand, deck):
 
 
 def play_twentyone():
+
     while True:
+        player_wins = 0
+        computer_wins = 0
 
-        os.system("clear")
-        prompt_with_separator("Welcome to Twenty-one.")
+        while player_wins < GAMES_TO_WIN and computer_wins < GAMES_TO_WIN:
 
-        # 1. Initialize deck
+            os.system("clear")
+            prompt_with_separator("Welcome to Twenty-one.")
+            prompt(f"First to {GAMES_TO_WIN} wins!")
+            prompt(f"Player has {player_wins} wins. Computer has {computer_wins} wins.")
 
-        playing_deck = initialize_deck()
-        winner = None
+            # 1. Initialize deck
 
-        # 2. Deal cards to player and dealer
+            playing_deck = initialize_deck()
+            winner = None
 
-        player_hand = []
-        computer_hand = []
+            # 2. Deal cards to player and dealer
 
-        deal_card(player_hand, playing_deck)
-        deal_card(player_hand, playing_deck)
-        deal_card(computer_hand, playing_deck)
-        deal_card(computer_hand, playing_deck)
+            player_hand = []
+            computer_hand = []
 
-        # display your hand
+            deal_card(player_hand, playing_deck)
+            deal_card(player_hand, playing_deck)
+            deal_card(computer_hand, playing_deck)
+            deal_card(computer_hand, playing_deck)
 
-        display_hand(player_hand)
+            # display your hand
 
-        # display one card from computer's hand
+            display_hand(player_hand)
 
-        display_hand(computer_hand, is_dealer=True, conceal_card=True)
+            # display one card from computer's hand
 
-        while True:
-
-            # 3. Player turn: hit or stay
-            #    - repeat until bust or stay
+            display_hand(computer_hand, is_dealer=True, conceal_card=True)
 
             while True:
-                prompt_with_separator("Do you hit (h) or stay (s)?")
+
+                # 3. Player turn: hit or stay
+                #    - repeat until bust or stay
+
                 while True:
-                    choice = input().strip()
-                    if choice in ("h", "s"):
-                        break
-                    prompt_with_separator("Please choose between hit (h) or stay (s).")
+                    prompt_with_separator("Do you hit (h) or stay (s)?")
+                    while True:
+                        choice = input().strip()
+                        if choice in ("h", "s"):
+                            break
+                        prompt_with_separator("Please choose between hit (h) or stay (s).")
 
-                if choice == "s":
-                    prompt_with_separator(
-                        f"You decide to stay. Your hand total is {total(player_hand)}."
-                    )
+                    if choice == "s":
+                        prompt_with_separator(
+                            f"You decide to stay. Your hand total is {total(player_hand)}."
+                        )
+                        break
+                    if choice == "h":
+                        prompt_with_separator("You decide to hit.")
+                        deal_card(player_hand, playing_deck)
+                        display_hand(player_hand)
+                        if is_busted(player_hand):
+                            winner = "dealer"
+                            break
+
+                # 4. If player bust, dealer wins.
+
+                if winner:
+                    prompt_with_separator("You busted!")
+                    prompt_with_separator("The dealer wins!")
+                    computer_wins += 1
                     break
-                if choice == "h":
-                    prompt_with_separator("You decide to hit.")
-                    deal_card(player_hand, playing_deck)
-                    display_hand(player_hand)
-                    if is_busted(player_hand):
-                        winner = "dealer"
-                        break
 
-            # 4. If player bust, dealer wins.
+                # 5. Dealer turn: hit or stay
+                #    - repeat until total >= 17
 
-            if winner:
-                prompt_with_separator("You busted!")
-                prompt_with_separator("The dealer wins!")
+                dealer_turn(computer_hand, playing_deck)
+
+                # reveal dealer hand
+
+                display_hand(computer_hand, is_dealer=True, conceal_card=False)
+                prompt(f"The dealer's hand total is {total(computer_hand)}.")
+
+                # 6. If dealer busts, player wins.
+
+                if is_busted(computer_hand):
+                    prompt_with_separator("The dealer busted!")
+                    prompt_with_separator("You win!")
+                    player_wins += 1
+                    break
+
+                # 7. Compare cards and declare winner.
+
+                if total(player_hand) > total(computer_hand):
+                    prompt_with_separator("You win!")
+                    player_wins += 1
+                    break
+                if total(computer_hand) > total(player_hand):
+                    prompt_with_separator("Dealer wins!")
+                    computer_wins += 1
+                    break
+                prompt_with_separator("It's a tie!")
                 break
 
-            # 5. Dealer turn: hit or stay
-            #    - repeat until total >= 17
+            prompt("Press enter to continue.")
+            input()
 
-            dealer_turn(computer_hand, playing_deck)
+        if player_wins > computer_wins:
+            prompt("Player won the match!")
+        else:
+            prompt("Computer won the match!")
 
-            # reveal dealer hand
+            prompt_with_separator("Play again? (y or n)")
 
-            display_hand(computer_hand, is_dealer=True, conceal_card=False)
-            prompt(f"The dealer's hand total is {total(computer_hand)}.")
+            while True:
+                answer = input().lower()
 
-            # 6. If dealer busts, player wins.
+                if answer in ("n", "y"):
+                    break
 
-            if is_busted(computer_hand):
-                prompt_with_separator("The dealer busted!")
-                prompt_with_separator("You win!")
+                prompt_with_separator("Please choose a valid option (y or n)")
+
+            if answer == "n":
                 break
-
-            # 7. Compare cards and declare winner.
-
-            if total(player_hand) > total(computer_hand):
-                prompt_with_separator("You win!")
-                break
-            if total(computer_hand) > total(player_hand):
-                prompt_with_separator("Dealer wins!")
-                break
-            prompt_with_separator("It's a tie!")
-            break
-
-        prompt_with_separator("Play again? (y or n)")
-
-        while True:
-            answer = input().lower()
-
-            if answer in ("n", "y"):
-                break
-
-            prompt_with_separator("Please choose a valid option (y or n)")
-
-        if answer == "n":
-            break
 
         prompt_with_separator("Thanks for playing Twenty-One!")
 
