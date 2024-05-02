@@ -71,7 +71,7 @@ def prompt_with_separator(msg, delimiter="-", width=60):
 
 
 def player_turn(player_hand, playing_deck, total_to_win):
-    while True:
+    while total(player_hand) <= total_to_win:
         prompt_with_separator("Do you hit (h) or stay (s)?")
         while True:
             choice = input().strip()
