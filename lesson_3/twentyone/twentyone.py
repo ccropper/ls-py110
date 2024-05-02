@@ -5,36 +5,29 @@ from utils import prompt
 CARD_BACK = "\u2591"
 SUITS = ("\u2663", "\u2665", "\u2666", "\u2660")
 VALUES = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
+ACE_VALUE = 11
+
 GAMES_TO_WIN = 5
 
 
 def make_card(card, hidden=False):
-    card_display = ""
+
+    card_display = ".-------.\n"
+
     if hidden:
-        card_display += ".-------.\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += "`-------`\n"
+        for _ in range(5):
+            card_display += f"|{CARD_BACK * 7}|\n"
+
     else:
-        if card[0] != "10":
-            card_display += ".-------.\n"
-            card_display += f"| {card[0]}     |\n"
-            card_display += "|       |\n"
-            card_display += f"|   {card[1]}   |\n"
-            card_display += "|       |\n"
-            card_display += f"|     {card[0]} |\n"
-            card_display += "`-------`"
-        else:
-            card_display += ".-------.\n"
-            card_display += f"| {card[0]}    |\n"
-            card_display += "|       |\n"
-            card_display += f"|   {card[1]}   |\n"
-            card_display += "|       |\n"
-            card_display += f"|    {card[0]} |\n"
-            card_display += "`-------`"
+        buffer = 3 if card[0] == "10" else 4
+
+        card_display += f"| {card[0]}{' ' * buffer} |\n"
+        card_display += "|       |\n"
+        card_display += f"|   {card[1]}   |\n"
+        card_display += "|       |\n"
+        card_display += f"| {' ' * buffer}{card[0]} |\n"
+
+    card_display += "`-------`\n"
 
     return card_display
 
@@ -71,7 +64,7 @@ def prompt_with_separator(msg, delimiter="-", width=60):
 
 
 def player_turn(player_hand, playing_deck, total_to_win):
-    while True:
+    while total(player_hand) <= total_to_win:
         prompt_with_separator("Do you hit (h) or stay (s)?")
         while True:
             choice = input().strip()
@@ -85,9 +78,11 @@ def player_turn(player_hand, playing_deck, total_to_win):
             )
             break
         if choice == "h":
-            prompt_with_separator("You decide to hit.")
             deal_card(player_hand, playing_deck)
             display_hand(player_hand)
+            prompt_with_separator(
+                f"You decide to hit. Your hand total is {total(player_hand, total_to_win)}."
+            )
 
 
 def get_total_to_win():
@@ -95,9 +90,14 @@ def get_total_to_win():
     while True:
         try:
             total_to_win = int(input())
-            break
+            if 99 >= total_to_win >= 21:
+                break
+
+            prompt("Please enter a number between 21 and 99.")
+
         except ValueError:
-            prompt("Please enter an integer between 21 and 99. ")
+            prompt("Please enter an integer. ")
+
     return total_to_win
 
 
@@ -115,6 +115,22 @@ def deal_card(hand, deck):
     hand.append(deck.pop())
 
 
+def deal_hands(playing_deck, player_hand, computer_hand):
+
+    deal_card(player_hand, playing_deck)
+    deal_card(player_hand, playing_deck)
+    deal_card(computer_hand, playing_deck)
+    deal_card(computer_hand, playing_deck)
+
+    # display your hand
+
+    display_hand(player_hand)
+
+    # display one card from computer's hand
+
+    display_hand(computer_hand, is_dealer=True, conceal_card=True)
+
+
 def total(cards, total_to_win=21):
     # cards = [['H', '3'], ['S', 'Q'], ... ]
     values = [card[1] for card in cards]
@@ -122,7 +138,7 @@ def total(cards, total_to_win=21):
     sum_val = 0
     for value in values:
         if value == "A":
-            sum_val += 11
+            sum_val += ACE_VALUE
         elif value in ["J", "Q", "K"]:
             sum_val += 10
         else:
@@ -144,12 +160,22 @@ def is_busted(hand, total_to_win=21):
 
 
 def dealer_turn(hand, deck, total_to_win=21):
-    while total(hand, total_to_win) < total_to_win - 4:
+
+    dealer_value_to_stay = total_to_win - 4
+
+    while total(hand, total_to_win) < dealer_value_to_stay:
         deal_card(hand, deck)
         prompt(
             f"Dealer hits! They are dealt a {hand[-1][1]} of {hand[-1][0]} from the deck..."
         )
     prompt_with_separator("Dealer stays.")
+
+
+def announce_match_winner(player_wins, computer_wins):
+    if player_wins > computer_wins:
+        prompt("Player won the match!")
+    else:
+        prompt("Computer won the match!")
 
 
 def play_again():
@@ -175,6 +201,7 @@ def play_twentyone():
         player_wins = 0
         computer_wins = 0
 
+        os.system("clear")
         prompt_with_separator("Welcome to Whatever-One.")
 
         total_to_win = get_total_to_win()
@@ -182,7 +209,6 @@ def play_twentyone():
         while player_wins < GAMES_TO_WIN and computer_wins < GAMES_TO_WIN:
 
             os.system("clear")
-
             prompt_with_separator(f"Welcome to {total_to_win}.")
             prompt(f"First to win {GAMES_TO_WIN} games wins the match!")
 
@@ -196,18 +222,7 @@ def play_twentyone():
             player_hand = []
             computer_hand = []
 
-            deal_card(player_hand, playing_deck)
-            deal_card(player_hand, playing_deck)
-            deal_card(computer_hand, playing_deck)
-            deal_card(computer_hand, playing_deck)
-
-            # display your hand
-
-            display_hand(player_hand)
-
-            # display one card from computer's hand
-
-            display_hand(computer_hand, is_dealer=True, conceal_card=True)
+            deal_hands(playing_deck, player_hand, computer_hand)
 
             while True:
 
@@ -223,8 +238,7 @@ def play_twentyone():
                     winner = "dealer"
 
                 if winner:
-                    prompt_with_separator("You busted!")
-                    prompt_with_separator("The dealer wins!")
+                    prompt_with_separator("You busted! The dealer wins!")
                     computer_wins += 1
                     break
 
@@ -258,6 +272,7 @@ def play_twentyone():
                     prompt_with_separator("Dealer wins!")
                     computer_wins += 1
                     break
+
                 prompt_with_separator("It's a tie!")
                 break
 
@@ -267,10 +282,7 @@ def play_twentyone():
             prompt("Press enter to continue.")
             input()
 
-        if player_wins > computer_wins:
-            prompt("Player won the match!")
-        else:
-            prompt("Computer won the match!")
+        announce_match_winner(player_wins, computer_wins)
 
         if not play_again():
             break
