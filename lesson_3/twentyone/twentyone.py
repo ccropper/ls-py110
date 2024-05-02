@@ -9,32 +9,26 @@ GAMES_TO_WIN = 5
 
 
 def make_card(card, hidden=False):
-    card_display = ""
+    
+    card_display = ".-------.\n"
+
     if hidden:
-        card_display += ".-------.\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += f"|{CARD_BACK*7}|\n"
-        card_display += "`-------`\n"
+        card_display += f"|{CARD_BACK * 7}|\n"
+        card_display += f"|{CARD_BACK * 7}|\n"
+        card_display += f"|{CARD_BACK * 7}|\n"
+        card_display += f"|{CARD_BACK * 7}|\n"
+        card_display += f"|{CARD_BACK * 7}|\n"
+        
     else:
-        if card[0] != "10":
-            card_display += ".-------.\n"
-            card_display += f"| {card[0]}     |\n"
-            card_display += "|       |\n"
-            card_display += f"|   {card[1]}   |\n"
-            card_display += "|       |\n"
-            card_display += f"|     {card[0]} |\n"
-            card_display += "`-------`"
-        else:
-            card_display += ".-------.\n"
-            card_display += f"| {card[0]}    |\n"
-            card_display += "|       |\n"
-            card_display += f"|   {card[1]}   |\n"
-            card_display += "|       |\n"
-            card_display += f"|    {card[0]} |\n"
-            card_display += "`-------`"
+        buffer = 3 if card[0] == "10" else 4
+
+        card_display += f"| {card[0]}{' ' * buffer} |\n"
+        card_display += "|       |\n"
+        card_display += f"|   {card[1]}   |\n"
+        card_display += "|       |\n"
+        card_display += f"| {' ' * buffer}{card[0]} |\n"
+
+    card_display += "`-------`\n"
 
     return card_display
 
@@ -85,9 +79,9 @@ def player_turn(player_hand, playing_deck, total_to_win):
             )
             break
         if choice == "h":
-            prompt_with_separator("You decide to hit.")
             deal_card(player_hand, playing_deck)
             display_hand(player_hand)
+            prompt_with_separator(f"You decide to hit. Your hand total is {total(player_hand, total_to_win)}.")
 
 
 def get_total_to_win():
