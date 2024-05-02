@@ -13,11 +13,8 @@ def make_card(card, hidden=False):
     card_display = ".-------.\n"
 
     if hidden:
-        card_display += f"|{CARD_BACK * 7}|\n"
-        card_display += f"|{CARD_BACK * 7}|\n"
-        card_display += f"|{CARD_BACK * 7}|\n"
-        card_display += f"|{CARD_BACK * 7}|\n"
-        card_display += f"|{CARD_BACK * 7}|\n"
+        for i in range(5):
+            card_display += f"|{CARD_BACK * 7}|\n"
         
     else:
         buffer = 3 if card[0] == "10" else 4
