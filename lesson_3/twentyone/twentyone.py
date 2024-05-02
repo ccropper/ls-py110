@@ -2,9 +2,70 @@ import os
 import random
 from utils import prompt, join_or
 
-SUITS = ("Hearts", "Diamonds", "Spades", "Clubs")
+CARD_BACK = "\u2591"
+SUITS = ("\u2663", "\u2665", 
+         "\u2666", "\u2660")
 VALUES = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
-GAMES_TO_WIN = 5
+GAMES_TO_WIN = 5    
+
+def make_card(card, hidden=False):
+    card_display = ""
+    if hidden:
+            card_display += (".-------.\n")
+            card_display += (f"|{CARD_BACK*7}|\n")
+            card_display += (f"|{CARD_BACK*7}|\n")
+            card_display += (f"|{CARD_BACK*7}|\n")
+            card_display += (f"|{CARD_BACK*7}|\n")
+            card_display += (f"|{CARD_BACK*7}|\n")
+            card_display += ("`-------`\n")
+    else:
+        if card[0] != '10':
+            card_display += (".-------.\n")
+            card_display += (f"| {card[0]}     |\n")
+            card_display += ("|       |\n")
+            card_display += (f"|   {card[1]}   |\n")
+            card_display += ("|       |\n")
+            card_display += (f"|     {card[0]} |\n")
+            card_display += ("`-------`")
+        else:
+            card_display += (".-------.\n")
+            card_display += (f"| {card[0]}    |\n")
+            card_display += ("|       |\n")
+            card_display += (f"|   {card[1]}   |\n")
+            card_display += ("|       |\n")
+            card_display += (f"|    {card[0]} |\n")
+            card_display += ("`-------`") 
+
+    return card_display
+
+def display_hand(hand, sep='  ', is_dealer=False, conceal_card=False):
+
+    if is_dealer:
+        prompt("Dealer's hand: ")
+    else:
+        prompt("Your hand: ")
+
+    if not conceal_card:
+        cards = [make_card([card[1], card[0]]) for card in hand]
+    else:
+        cards = [make_card([card[1], card[0]]) for card in hand[:-1]]
+        cards.append(make_card([hand[-1][0], hand[-1][1]], hidden=True))
+
+    lines = [card.split("\n") for card in cards]
+
+    for line_num in range(len(lines[0])):
+                for card_line in lines: 
+                    print(card_line[line_num], end="")
+                    print(sep, end="")
+                print()
+    
+
+def create_deck():
+    return [[suit, value] for suit in SUITS for value in VALUES]
+
+def prompt_with_separator(msg, delimiter="-", width=60):
+    print(f"{delimiter * width}")
+    prompt(msg)
 
 def get_total_to_win():
     prompt("What should be the total point value to win the hand? (21 - 99)")
@@ -16,17 +77,8 @@ def get_total_to_win():
             prompt ("Please enter an integer between 21 and 99. ")
     return total_to_win
 
-def create_deck():
-    return [[suit, value] for suit in SUITS for value in VALUES]
-
-def prompt_with_separator(msg, delimiter="-", width=60):
-    print(f"{delimiter * width}")
-    prompt(msg)
-
-
 def shuffle(cards):
     random.shuffle(cards)
-
 
 def initialize_deck():
     deck = create_deck()
@@ -38,23 +90,24 @@ def deal_card(hand, deck):
     hand.append(deck.pop())
 
 
-def display_hand(hand, is_dealer=False, conceal_card=False):
-    msg = ""
-    if is_dealer:
-        msg += "Dealer's hand: "
-    if not is_dealer:
-        msg += "Your hand: "
-    if not conceal_card:
-        legible_hand = [f"{card[1]} of {card[0]}" for card in hand]
-        joined_hand = join_or(legible_hand, last_joining_word="and")
-        msg += f"{joined_hand}."
-    else:
-        legible_hand = [f"{card[1]} of {card[0]}" for card in hand[:-1]]
-        joined_hand = join_or(legible_hand, last_joining_word="and")
-        msg += f"{joined_hand} and a secret card."
-
-    prompt_with_separator(msg)
-
+# def display_hand(hand, is_dealer=False, conceal_card=False):
+#     if is_dealer:
+#         prompt("Dealer's hand:")
+#     if not is_dealer:
+#         prompt("Your hand:")
+    
+#     graphical_rep_of_hand = []
+#     if conceal_card:
+#         for card in hand[:-1]:
+#             graphical_rep_of_hand.extend(make_card(card))
+#         graphical_rep_of_hand.extend(make_card(hand[-1], hidden=True))
+#     else:
+#         for card in hand:
+#             graphical_rep_of_hand.extend(make_card(card))
+    
+#     display_cards(graphical_rep_of_hand)
+    
+#     prompt_with_separator('')
 
 def total(cards, total_to_win=21):
     # cards = [['H', '3'], ['S', 'Q'], ... ]
@@ -228,3 +281,15 @@ def play_twentyone():
 
 
 play_twentyone()
+
+# display_card(['10', '\u2666'], hidden=False)
+# display_card(['10', '\u2666'], hidden=True)
+
+# print(make_card(['10', '\u2666']))
+# print(make_card(['5', '\u2666']))
+
+cards = [make_card(['10', '\u2666']), make_card(['5', '\u2666'])]
+# display_cards(cards)
+# display_cards([make_card(['10', '\u2666']), make_card(['5', '\u2666'], hidden=True)])
+
+# display_hand(cards)
